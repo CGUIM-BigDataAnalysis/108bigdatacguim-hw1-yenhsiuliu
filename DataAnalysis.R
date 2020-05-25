@@ -1,2 +1,58 @@
 library(jsonlite)
 library(dplyr)
+library(readr)
+education107 <- read_csv("C:/Users/user/Downloads/hw/107education.csv")
+View(education107)
+education104 <- read_csv("C:/Users/user/Downloads/hw/104education.csv")
+View(education104)
+wage104<-education104[,c(2,11)]
+wage107<-education107[,c(2,11)]
+wage104$大職業別<-gsub("部門","",wage104$大職業別)
+wage104$大職業別<-gsub("、","_",wage104$大職業別)
+wage104$大職業別<-gsub("營造業","營建工程",wage104$大職業別)
+wage104$大職業別<-
+  gsub("資訊及通訊傳播","出版、影音製作、傳播及資通訊服務",wage104$大職業別)
+wage104$大職業別<-gsub("醫療保健服務","醫療保健",wage104$大職業別)
+wage104$大職業別<-gsub("教育服務","教育",wage104$大職業別)
+names(wage104)[2]<-"104大學-薪資"
+names(wage107)[2]<-"107大學-薪資"
+wage104$`104大學-薪資`<-gsub("—","",wage104$`104大學-薪資`)
+wage107$`107大學-薪資`<-gsub("—|…","",wage107$`107大學-薪資`)
+wage<-inner_join(wage104,wage107,by="大職業別")
+str(wage)
+wage$`104大學-薪資`<-as.numeric(as.character(wage$`104大學-薪資`))
+wage$`107大學-薪資`<-as.numeric(as.character(wage$`107大學-薪資`))
+wage<-wage[complete.cases(wage),]
+wage$薪資比例<-wage$`107大學-薪資`/wage$`104大學-薪資`
+wage<-wage[order(wage$薪資比例,decreasing=T),]
+head(wage,10)
+wage<-wage[wage$薪資比例>1.05,]
+#knitr::kable()
+#substr(wage$大職業別,start=1,stop="-")
+listwage<-wage$大職業別%>%strsplit("-")
+cleanwage<-unlist(listwage)
+cleanwage<-
+  gsub("服務及銷售工作人員|技術員及助理專業人員|事務支援人員|技藝_機械設備操作及組裝人員|專業人員","",cleanwage)
+cleanwage[!is.na(cleanwage)]
+  
+is.na(cleanwage)
+table(cleanwage)
+View(cleanwage)
+View(wage)
+
+mfratio104<-education104[,c(2,12)]
+names(mfratio104)[2]<-"104大學-女/男"
+mfratio107<-education107[,c(2,12)]
+names(mfratio107)[2]<-"107大學-女/男"
+mfratio104$大職業別<-gsub("部門","",mfratio104$大職業別)
+mfratio104$大職業別<-gsub("、","_",mfratio104$大職業別)
+mfratio104$大職業別<-gsub("營造業","營建工程",mfratio104$大職業別)
+mfratio104$大職業別<-
+  gsub("資訊及通訊傳播","出版、影音製作、傳播及資通訊服務",mfratio104$大職業別)
+mfratio104$大職業別<-gsub("醫療保健服務","醫療保健",mfratio104$大職業別)
+mfratio104$大職業別<-gsub("教育服務","教育",mfratio104$大職業別)
+mfratio104$`104大學-女/男`<-gsub("—","",mfratio104$`104大學-女/男`)
+mfratio107$`107大學-女/男`<-gsub("—|…","",mfratio107$`107大學-女/男`)
+mfratio<-inner_join(mfratio104,mfratio107,by="大職業別")
+mfratio<-mfratio[complete.cases(mfratio),]
+View(mfratio)
